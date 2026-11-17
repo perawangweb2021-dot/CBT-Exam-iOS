@@ -1,0 +1,62 @@
+name: Build CBT Exam iOS IPA
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install XcodeGen
+      run: brew install xcodegen
+
+    - name: Download School Logo and Generate AppIcon
+      run: |
+        mkdir -p Sources/Assets.xcassets/AppIcon.appiconset
+        curl -sL "https://smpn1tualang.sch.id/images/aplikasi/logo.png" -o logo_raw.png
+        sips -z 1024 1024 logo_raw.png --out Sources/Assets.xcassets/AppIcon.appiconset/icon_1024.png
+        sips -z 180 180 logo_raw.png --out Sources/Assets.xcassets/AppIcon.appiconset/icon_180.png
+        sips -z 120 120 logo_raw.png --out Sources/Assets.xcassets/AppIcon.appiconset/icon_120.png
+        cp Sources/Assets.xcassets/AppIcon.appiconset/icon_180.png Sources/logo_sekolah.png
+        cat <<EOF > Sources/Assets.xcassets/AppIcon.appiconset/Contents.json
+        {
+          "images" : [
+            { "size" : "60x60", "idiom" : "iphone", "filename" : "icon_120.png", "scale" : "2x" },
+            { "size" : "60x60", "idiom" : "iphone", "filename" : "icon_180.png", "scale" : "3x" },
+            { "size" : "1024x1024", "idiom" : "ios-marketing", "filename" : "icon_1024.png", "scale" : "1x" }
+          ],
+          "info" : { "version" : 1, "author" : "xcode" }
+        }
+        EOF
+
+    - name: Generate Xcode Project
+      run: xcodegen generate
+
+    - name: Build Unsigned iOS App
+      run: |
+        xcodebuild -project CBTExamIOS.xcodeproj \
+          -scheme CBTExamIOS \
+          -configuration Release \
+          -sdk iphoneos \
+          -derivedDataPath build \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
+
+    - name: Package into IPA
+      run: |
+        mkdir -p Payload
+        cp -r "build/Build/Products/Release-iphoneos/CBT Exam SMPN 1 Tualang.app" Payload/
+        zip -r CBT-Exam-SMPN1Tualang.ipa Payload
+
+    - name: Upload iOS IPA Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: CBT-Exam-SMPN1Tualang-iOS-IPA
+        path: CBT-Exam-SMPN1Tualang.ipa
