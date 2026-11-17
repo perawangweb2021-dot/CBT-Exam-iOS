@@ -1,0 +1,24 @@
+name: CBTExamIOS
+options:
+  bundleIdPrefix: com.smpn1tualang
+  deploymentTarget:
+    iOS: "14.0"
+targets:
+  CBTExamIOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+        excludes:
+          - Info.plist
+    settings:
+      base:
+        INFOPLIST_FILE: Sources/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.smpn1tualang.cbtexam
+        PRODUCT_NAME: "CBT Exam SMPN 1 Tualang"
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1" # Khusus iPhone (Portrait)
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGNING_ALLOWED: "NO"
+        CODE_SIGNING_REQUIRED: "NO"
